@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scanner 3D - Voxel Objects</title>
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #000;
+    overflow: hidden;
+    height: 100vh;
+    font-family: monospace;
+}
+
+#container3d,
+#container2d {
+    position: absolute;
+    top: 0;
+    height: 100vh;
+}
+
+#container3d {
+    left: 0;
+    width: 50vw;
+    z-index: 2;
+    border-right: 1px solid #222;
+}
+
+#container2d {
+    right: 0;
+    width: 50vw;
+    z-index: 1;
+}
+
+.container {
+    position: relative;
+    overflow: hidden;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: crosshair;
+}
+
+video {
+    display: none;
+}
+
+.label {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: #0f0;
+    background: rgba(0,0,0,.7);
+    padding: 5px;
+    border: 1px solid #0f0;
+    pointer-events: none;
+}
+
+.slider-container {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    color: #0f0;
+    background: rgba(0,0,0,.7);
+    padding: 8px;
+    border: 1px solid #0f0;
+}
+
+.slider-container input {
+    width: 120px;
+}
+
+#container3d.fullscreen3d {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 99999;
+    border: none;
+}
+
+#container3d.fullscreen3d canvas {
+    width: 100%;
+    height: 100%;
+}
+
+#container3d.fullscreen3d ~ #container2d {
+    pointer-events: none;
+    opacity: 0;
+}
+
+#full {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+
+    background: rgba(0, 0, 0, 0.75);
+    border: 1px solid #0f0;
+    padding: 8px 12px;
+
+    color: #0f0;
+    font-size: 12px;
+
+    z-index: 100000;
+    pointer-events: auto;
+
+    box-shadow: 0 0 10px rgba(0,255,0,0.4);
+}
+
+#full label {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#full input[type="checkbox"] {
+    accent-color: #0f0;
+    cursor: pointer;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container" id="container3d">
+    <canvas id="canvas3d"></canvas>
+    <div class="label">RECONSTRUÇÃO 3D (OBJETOS)</div>
+    <div class="slider-container">
+        GRID SIZE: <input type="range" id="gridSlider" min="4" max="128" value="54"><br>
+        CUBE SIZE: <input type="range" id="cubeSlider" min="1" max="20" value="9"><br>
+        DEPTH: <input type="range" id="depthSlider" min="0" max="5" step="0.01" value="2"><br>
+        ROT X: <input type="range" id="rotXSlider" min="0" max="6.28" step="0.01" value="0.3"><br>
+        ROT Y: <input type="range" id="rotYSlider" min="0" max="6.28" step="0.01" value="0"><br>
+        ROT Z: <input type="range" id="rotZSlider" min="0" max="6.28" step="0.01" value="0"><br>
+        SCALE: <input type="range" id="scaleSlider" min="0.1" max="5" step="0.01" value="1"><br>
+        BRIGHTNESS: <input type="range" id="brightSlider" min="0" max="3" step="0.01" value="1"><br>
+        CAM DIST: <input type="range" id="camDistSlider" min="1" max="20" step="0.1" value="6">
+        <button id="saveBtn">Save Config</button>
+    </div>
+    <div class="container" id="full">
+        <label>
+            <input type="checkbox" id="toggleFullscreen">
+            3D FULLSCREEN
+        </label>
+    </div>
+</div>
+
+<div class="container" id="container2d">
+    <canvas id="canvas2d"></canvas>
+    <div class="label">CÂMERA</div>
+<video id="video" autoplay playsinline></video>
+</div>
+
+<script>
+const toggleFullscreen = document.getElementById("toggleFullscreen");
+const container3d = document.getElementById("container3d");
+
+toggleFullscreen.addEventListener("change", () => {
+    if (toggleFullscreen.checked) {
+        container3d.classList.add("fullscreen3d");
+    } else {
+        container3d.classList.remove("fullscreen3d");
+    }
+});
+
+let GRID_SIZE = 54;
+let CUBE_SIZE = 9;
+let CUBE_SCALE = 1;
+let BRIGHTNESS = 1;
+
+const camState = { pos:[0,0,6], yaw:0, pitch:0, speed:0.15, sensitivity:0.005 };
+const objState = { rotX:0.3, rotY:0, rotZ:0, depth:2.0 };
+
+const keys = {};
+window.addEventListener("keydown", e => keys[e.code] = true);
+window.addEventListener("keyup", e => keys[e.code] = false);
+
+document.getElementById("gridSlider").addEventListener("input", e => GRID_SIZE = parseInt(e.target.value));
+document.getElementById("cubeSlider").addEventListener("input", e => CUBE_SIZE = parseInt(e.target.value));
+document.getElementById("depthSlider").addEventListener("input", e => objState.depth = parseFloat(e.target.value));
+document.getElementById("rotXSlider").addEventListener("input", e => objState.rotX = parseFloat(e.target.value));
+document.getElementById("rotYSlider").addEventListener("input", e => objState.rotY = parseFloat(e.target.value));
+document.getElementById("rotZSlider").addEventListener("input", e => objState.rotZ = parseFloat(e.target.value));
+document.getElementById("scaleSlider").addEventListener("input", e => CUBE_SCALE = parseFloat(e.target.value));
+document.getElementById("brightSlider").addEventListener("input", e => BRIGHTNESS = parseFloat(e.target.value));
+document.getElementById("camDistSlider").addEventListener("input", e => camState.pos[2] = parseFloat(e.target.value));
+
+document.getElementById("saveBtn").addEventListener("click", () => {
+    const config = {
+        GRID_SIZE,
+        CUBE_SIZE,
+        objStateDepth: objState.depth,
+        rotX: objState.rotX,
+        rotY: objState.rotY,
+        rotZ: objState.rotZ,
+        CUBE_SCALE,
+        BRIGHTNESS,
+        camPos: camState.pos.slice(),
+        camYaw: camState.yaw,
+        camPitch: camState.pitch
+    };
+    localStorage.setItem("voxelConfig", JSON.stringify(config));
+});
+
+window.addEventListener("load", () => {
+    const saved = localStorage.getItem("voxelConfig");
+    if(saved){
+        const config = JSON.parse(saved);
+
+        GRID_SIZE = config.GRID_SIZE;
+        CUBE_SIZE = config.CUBE_SIZE;
+        objState.depth = config.objStateDepth;
+        objState.rotX = config.rotX;
+        objState.rotY = config.rotY;
+        objState.rotZ = config.rotZ;
+        CUBE_SCALE = config.CUBE_SCALE;
+        BRIGHTNESS = config.BRIGHTNESS;
+
+        camState.pos = config.camPos.slice();
+        camState.yaw = config.camYaw;
+        camState.pitch = config.camPitch;
+
+        document.getElementById("gridSlider").value = GRID_SIZE;
+        document.getElementById("cubeSlider").value = CUBE_SIZE;
+        document.getElementById("depthSlider").value = objState.depth;
+        document.getElementById("rotXSlider").value = objState.rotX;
+        document.getElementById("rotYSlider").value = objState.rotY;
+        document.getElementById("rotZSlider").value = objState.rotZ;
+        document.getElementById("scaleSlider").value = CUBE_SCALE;
+        document.getElementById("brightSlider").value = BRIGHTNESS;
+        document.getElementById("camDistSlider").value = camState.pos[2];
+    }
+});
+
+let isMouseDown = false;
+let lastX, lastY;
+document.body.addEventListener("mousedown", e => { isMouseDown = true; lastX = e.clientX; lastY = e.clientY; });
+document.body.addEventListener("mouseup", e => isMouseDown = false);
+document.body.addEventListener("mousemove", e => {
+    if(!isMouseDown) return;
+    let dx = e.clientX - lastX;
+    let dy = e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    camState.yaw -= dx * camState.sensitivity;
+    camState.pitch -= dy * camState.sensitivity;
+    if(camState.pitch > Math.PI/2) camState.pitch = Math.PI/2;
+    if(camState.pitch < -Math.PI/2) camState.pitch = -Math.PI/2;
+});
+
+const moveSpeed = 0.15;
+
+class ScannerMesh {
+    constructor(gl){
+        this.gl = gl;
+        this.program = this._shader();
+        this.posBuffer = gl.createBuffer();
+        this.colBuffer = gl.createBuffer();
+        this.vertCount = 0;
+    }
+
+    _shader(){
+        const gl = this.gl;
+        const vs = `
+        attribute vec3 aPos;
+        attribute vec4 aCol;
+        uniform mat4 uProj,uView,uModel;
+        varying vec4 vCol;
+        void main(){
+            gl_Position = uProj*uView*uModel*vec4(aPos,1.0);
+            vCol = aCol;
+        }`;
+        const fs = `precision mediump float; varying vec4 vCol; void main(){gl_FragColor=vCol;}`;
+        const sh = (t,s)=>{let x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);return x;}
+        let p=gl.createProgram();
+        gl.attachShader(p,sh(gl.VERTEX_SHADER,vs));
+        gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));
+        gl.linkProgram(p);
+        return p;
+    }
+
+    updateFromCamera(pixels, w, h) {
+        const size = (CUBE_SIZE / GRID_SIZE) * CUBE_SCALE;
+        const pos = [];
+        const col = [];
+
+        for (let y = 0; y < GRID_SIZE; y++) {
+            for (let x = 0; x < GRID_SIZE; x++) {
+                const px = (x / GRID_SIZE * (w - 1)) | 0;
+                const py = ((1 - y / GRID_SIZE) * (h - 1)) | 0;
+                const i = (py * w + px) * 4;
+                const r = (pixels[i] / 255) * BRIGHTNESS;
+                const g = (pixels[i + 1] / 255) * BRIGHTNESS;
+                const b = (pixels[i + 2] / 255) * BRIGHTNESS;
+                const z = (0.2126 * r + 0.7152 * g + 0.0722 * b) * objState.depth;
+                const cx = x / GRID_SIZE * 4 - 2;
+                const cy = y / GRID_SIZE * 4 - 2;
+                const cz = z;
+
+                const v = [
+                    [0, 0, 0], [size, 0, 0], [size, size, 0], [0, size, 0],
+                    [0, 0, size], [size, 0, size], [size, size, size], [0, size, size]
+                ];
+
+                const faces = [
+                    [0, 1, 2, 0, 2, 3], [4, 5, 6, 4, 6, 7],
+                    [0, 1, 5, 0, 5, 4], [2, 3, 7, 2, 7, 6],
+                    [0, 3, 7, 0, 7, 4], [1, 2, 6, 1, 6, 5],
+                ];
+
+                for (let f = 0; f < faces.length; f++) {
+                    for (let j = 0; j < 6; j++) {
+                        const idx = faces[f][j];
+                        pos.push(cx + v[idx][0], cy + v[idx][1], cz + v[idx][2]);
+                        col.push(r, g, b, 1);
+                    }
+                }
+            }
+        }
+
+        this.vertCount = pos.length / 3;
+        const gl = this.gl;
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.posBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pos), gl.DYNAMIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.colBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(col), gl.DYNAMIC_DRAW);
+    }
+
+    render(view,proj,model){
+        const gl=this.gl;
+        gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+        gl.enable(gl.DEPTH_TEST);
+        gl.useProgram(this.program);
+        const ap=gl.getAttribLocation(this.program,"aPos");
+        gl.bindBuffer(gl.ARRAY_BUFFER,this.posBuffer);
+        gl.vertexAttribPointer(ap,3,gl.FLOAT,false,0,0);
+        gl.enableVertexAttribArray(ap);
+        const ac=gl.getAttribLocation(this.program,"aCol");
+        gl.bindBuffer(gl.ARRAY_BUFFER,this.colBuffer);
+        gl.vertexAttribPointer(ac,4,gl.FLOAT,false,0,0);
+        gl.enableVertexAttribArray(ac);
+        gl.uniformMatrix4fv(gl.getUniformLocation(this.program,"uProj"),false,proj);
+        gl.uniformMatrix4fv(gl.getUniformLocation(this.program,"uView"),false,view);
+        gl.uniformMatrix4fv(gl.getUniformLocation(this.program,"uModel"),false,model);
+        gl.drawArrays(gl.TRIANGLES,0,this.vertCount);
+    }
+}
+
+function matIdent(){return new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);}
+function matPersp(f,a,n,z){ const s=1/Math.tan(f/2), r=1/(n-z); return new Float32Array([s/a,0,0,0, 0,s,0,0, 0,0,(z+n)*r,-1, 0,0,2*z*n*r,0]); }
+function matRot(m,a,[x,y,z]){ const s=Math.sin(a),c=Math.cos(a),t=1-c; const r=[x*x*t+c,x*y*t-z*s,x*z*t+y*s,0,y*x*t+z*s,y*y*t+c,y*z*t-x*s,0,z*x*t-y*s,z*y*t+x*s,z*z*t+c,0,0,0,0,1]; const o=new Float32Array(16); for(let i=0;i<4;i++)for(let j=0;j<4;j++)for(let k=0;k<4;k++)o[i*4+j]+=r[i*4+k]*m[k*4+j]; return o; }
+function matTrans(m,x,y,z){ const o=new Float32Array(m); o[12]+=x; o[13]+=y; o[14]+=z; return o; }
+
+async function main(){
+    const c3=document.getElementById("canvas3d");
+    const c2=document.getElementById("canvas2d");
+    const gl=c3.getContext("webgl");
+    const ctx=c2.getContext("2d");
+    const video=document.getElementById("video");
+    video.srcObject=await navigator.mediaDevices.getUserMedia({video:true});
+    const mesh=new ScannerMesh(gl);
+
+    function loop(){
+        c3.width=c3.clientWidth; c3.height=c3.clientHeight;
+        c2.width=c2.clientWidth; c2.height=c2.clientHeight;
+        gl.viewport(0,0,c3.width,c3.height);
+
+        let forward = [Math.sin(camState.yaw), 0, Math.cos(camState.yaw)];
+        let right = [Math.sin(camState.yaw + Math.PI/2), 0, Math.cos(camState.yaw + Math.PI/2)];
+        if(keys["KeyW"]) camState.pos[0] -= forward[0]*moveSpeed, camState.pos[2] -= forward[2]*moveSpeed;
+        if(keys["KeyS"]) camState.pos[0] += forward[0]*moveSpeed, camState.pos[2] += forward[2]*moveSpeed;
+        if(keys["KeyA"]) camState.pos[0] -= right[0]*moveSpeed, camState.pos[2] -= right[2]*moveSpeed;
+        if(keys["KeyD"]) camState.pos[0] += right[0]*moveSpeed, camState.pos[2] += right[2]*moveSpeed;
+        if(keys["Space"]) camState.pos[1] += moveSpeed;
+        if(keys["ShiftLeft"]) camState.pos[1] -= moveSpeed;
+
+        if(video.readyState===4){
+            ctx.drawImage(video,0,0,c2.width,c2.height);
+            mesh.updateFromCamera(ctx.getImageData(0,0,c2.width,c2.height).data,c2.width,c2.height);
+        }
+
+        let view=matIdent();
+        view=matRot(view,camState.pitch,[1,0,0]);
+        view=matRot(view,camState.yaw,[0,1,0]);
+        view=matTrans(view,-camState.pos[0],-camState.pos[1],-camState.pos[2]);
+
+        let model=matIdent();
+        model=matRot(model,objState.rotY,[0,1,0]);
+        model=matRot(model,objState.rotX,[1,0,0]);
+        model=matRot(model,objState.rotZ,[0,0,1]);
+
+        mesh.render(view,matPersp(Math.PI/4,c3.width/c3.height,0.1,100),model);
+        requestAnimationFrame(loop);
+    }
+    loop();
+}
+main();
+</script>
+
+</body>
+</html>
