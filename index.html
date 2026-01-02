@@ -1,209 +1,161 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RealityToVoxel</title>
-<style>
-* {
-    box-sizing: border-box;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RealityToVoxel</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-body {
-    margin: 0;
-    background: #000;
-    overflow: hidden;
-    height: 100vh;
-    font-family: monospace;
-}
+        body {
+            margin: 0;
+            background: #000;
+            overflow: hidden;
+            height: 100vh;
+            font-family: monospace;
+        }
 
-#container3d,
-#container2d {
-    position: absolute;
-    top: 0;
-    height: 100vh;
-}
+        #container3d, #container2d {
+            position: absolute;
+            top: 0;
+            height: 100vh;
+        }
 
-#container3d {
-    left: 0;
-    width: 50vw;
-    z-index: 2;
-    border-right: 1px solid #222;
-}
+        #container3d {
+            left: 0;
+            width: 50vw;
+            z-index: 2;
+            border-right: 1px solid #222;
+        }
 
-#container2d {
-    right: 0;
-    width: 50vw;
-    z-index: 1;
-}
+        #container2d {
+            right: 0;
+            width: 50vw;
+            z-index: 1;
+        }
 
-.container {
-    position: relative;
-    overflow: hidden;
-}
+        .container {
+            position: relative;
+            overflow: hidden;
+        }
 
-canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-    cursor: crosshair;
-}
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: crosshair;
+        }
 
-video {
-    display: none;
-}
+        video {
+            display: none;
+        }
 
-.label {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    color: #0f0;
-    background: rgba(0,0,0,.7);
-    padding: 5px;
-    border: 1px solid #0f0;
-    pointer-events: none;
-}
+        .label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #0f0;
+            background: rgba(0, 0, 0, .7);
+            padding: 5px;
+            border: 1px solid #0f0;
+            pointer-events: none;
+        }
 
-.slider-container {
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
-    color: #0f0;
-    background: rgba(0,0,0,.7);
-    padding: 8px;
-    border: 1px solid #0f0;
-}
+        .slider-container {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: #0f0;
+            background: rgba(0, 0, 0, .7);
+            padding: 8px;
+            border: 1px solid #0f0;
+        }
 
-.slider-container input {
-    width: 120px;
-}
+        .slider-container input {
+            width: 120px;
+        }
 
-#container3d.fullscreen3d {
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 99999;
-    border: none;
-}
+        #container3d.fullscreen3d {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 99999;
+            border: none;
+        }
 
-#container3d.fullscreen3d canvas {
-    width: 100%;
-    height: 100%;
-}
+        #container3d.fullscreen3d canvas {
+            width: 100%;
+            height: 100%;
+        }
 
-#container3d.fullscreen3d ~ #container2d {
-    pointer-events: none;
-    opacity: 0;
-}
+        #container3d.fullscreen3d ~ #container2d {
+            pointer-events: none;
+            opacity: 0;
+        }
 
-#full {
-    position: absolute;
-    top: 0px;
-    right: -6px;
+        #full, #modeToggle, #photoBtn, #videoBtn {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 8px 12px;
+            font-size: 12px;
+            z-index: 100000;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
+        }
 
-    background: rgba(0, 0, 0, 0.75);
-    border: 1px solid #0f0;
-    padding: 8px 12px;
+        #full {
+            top: 0;
+            right: -6px;
+        }
 
-    color: #0f0;
-    font-size: 12px;
+        #modeToggle {
+            top: 0;
+            right: 125px;
+        }
 
-    z-index: 100000;
-    pointer-events: auto;
+        #photoBtn {
+            top: 50px;
+            right: 10px;
+            display: none;
+        }
 
-    box-shadow: 0 0 10px rgba(0,255,0,0.4);
-}
+        #videoBtn {
+            top: 90px;
+            right: 10px;
+            display: none;
+        }
 
-#full label {
-    cursor: pointer;
-    user-select: none;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
+        #full label, #modeToggle label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            user-select: none;
+        }
 
-#full input[type="checkbox"] {
-    accent-color: #0f0;
-    cursor: pointer;
-}
+        #full input[type="checkbox"], #modeToggle input[type="checkbox"] {
+            accent-color: #0f0;
+            cursor: pointer;
+        }
 
-#photoBtn {
-    position: absolute;
-    top: 50px;
-    right: 10px;
-    background: rgba(0, 0, 0, 0.75);
-    border: 1px solid #0f0;
-    padding: 8px 12px;
-    color: #0f0;
-    font-size: 12px;
-    z-index: 100001;
-    cursor: pointer;
-    display: none;
-    box-shadow: 0 0 10px rgba(0,255,0,0.4);
-}
-
-#photoBtn:hover {
-    background: rgba(0, 255, 0, 0.1);
-}
-
-#modeToggle {
-    position: absolute;
-    top: 0px;
-    right: 125px;
-    background: rgba(0, 0, 0, 0.75);
-    border: 1px solid #0f0;
-    padding: 8px 12px;
-    color: #0f0;
-    font-size: 12px;
-    z-index: 100000;
-    pointer-events: auto;
-    box-shadow: 0 0 10px rgba(0,255,0,0.4);
-}
-
-#modeToggle label {
-    cursor: pointer;
-    user-select: none;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-#modeToggle input[type="checkbox"] {
-    accent-color: #0f0;
-    cursor: pointer;
-}
-
-#videoBtn {
-    position: absolute;
-    top: 90px;
-    right: 10px;
-    background: rgba(0, 0, 0, 0.75);
-    border: 1px solid #0f0;
-    padding: 8px 12px;
-    color: #0f0;
-    font-size: 12px;
-    z-index: 100002;
-    cursor: pointer;
-    display: none;
-    box-shadow: 0 0 10px rgba(0,255,0,0.4);
-}
-
-#videoBtn:hover {
-    background: rgba(0, 255, 0, 0.1);
-}
-
-.controls{
-    top:auto;
-    bottom:10px;
-    right:10px;
-    left:auto;
-    z-index: 10;
-}
-
-</style>
+        .controls {
+            top: auto;
+            bottom: 10px;
+            right: 10px;
+            left: auto;
+            z-index: 10;
+        }
+    </style>
 </head>
 <body>
+
+<canvas id="temp" style="display: none;"></canvas>
+
 <div class="container" id="container3d">
     <canvas id="canvas3d"></canvas>
     <div class="label">RECONSTRUÇÃO 3D (OBJETOS)</div>
@@ -219,26 +171,16 @@ video {
         CAM DIST: <input type="range" id="camDistSlider" min="1" max="20" step="0.1" value="6">
         <button id="saveBtn">Save Config</button>
     </div>
-    <div id="topControls" style="position:absolute; top:10px; right:10px; display:flex;  z-index:100003;width: 36vh;">
-        <div id="cameraToggle" style="background: rgba(0,0,0,0.75); padding:8px; border:1px solid #0f0; color:#0f0; display:flex; align-items:center;">
-            <label style="cursor:pointer; display:flex; align-items:center; gap:6px;">
-                <input type="checkbox" id="toggleCamera" style="accent-color:#0f0;">
-                LIGAR CÂMERA
-            </label>
-        </div>
 
-        <div id="modeToggle" style="background: rgba(0,0,0,0.75); padding:8px; border:1px solid #0f0; color:#0f0; display:flex; align-items:center;">
-            <label style="cursor:pointer; display:flex; align-items:center; gap:6px;">
-                <input type="checkbox" id="toggleMode" style="accent-color:#0f0;">
-                MODOS
-            </label>
+    <div id="topControls" style="position: absolute; top: 10px; right: 10px; display: flex; z-index: 100003; width: 36vh;">
+        <div id="cameraToggle" style="background: rgba(0,0,0,0.75); padding: 8px; border: 1px solid #0f0; color: #0f0; display: flex; align-items: center;">
+            <label><input type="checkbox" id="toggleCamera"> LIGAR CÂMERA</label>
         </div>
-
-        <div id="full" style="background: rgba(0,0,0,0.75); padding:8px; border:1px solid #0f0; color:#0f0; display:flex; align-items:center;">
-            <label style="cursor:pointer; display:flex; align-items:center; gap:6px;">
-                <input type="checkbox" id="toggleFullscreen" style="accent-color:#0f0;">
-                3D FULLSCREEN
-            </label>
+        <div id="modeToggle">
+            <label><input type="checkbox" id="toggleMode"> MODOS</label>
+        </div>
+        <div id="full">
+            <label><input type="checkbox" id="toggleFullscreen"> 3D FULLSCREEN</label>
         </div>
     </div>
     <button id="photoBtn">ENVIAR FOTO</button>
@@ -255,30 +197,28 @@ video {
 <div class="container" id="container2d">
     <canvas id="canvas2d"></canvas>
     <div class="label">CÂMERA</div>
-<video id="video" autoplay playsinline></video>
+    <video id="video" autoplay playsinline></video>
 </div>
 
 <script>
 const toggleFullscreen = document.getElementById("toggleFullscreen");
 const container3d = document.getElementById("container3d");
+const toggleMode = document.getElementById("toggleMode");
+const photoBtn = document.getElementById("photoBtn");
+const videoBtn = document.getElementById("videoBtn");
+const video = document.getElementById("video");
+const tempCanvas = document.getElementById("temp");
+const tempCtx = tempCanvas.getContext("2d");
 
 toggleFullscreen.addEventListener("change", () => {
-    if (toggleFullscreen.checked) {
-        container3d.classList.add("fullscreen3d");
-    } else {
-        container3d.classList.remove("fullscreen3d");
-    }
+    container3d.classList.toggle("fullscreen3d", toggleFullscreen.checked);
 });
 
-let GRID_SIZE = 54;
-let CUBE_SIZE = 9;
-let CUBE_SCALE = 1;
-let BRIGHTNESS = 1;
-
-const camState = { pos:[0,0,6], yaw:0, pitch:0, speed:0.15, sensitivity:0.005 };
-const objState = { rotX:0.3, rotY:0, rotZ:0, depth:2.0 };
-
+let GRID_SIZE = 54, CUBE_SIZE = 9, CUBE_SCALE = 1, BRIGHTNESS = 1;
+let camState = { pos: [0, 0, 6], yaw: 0, pitch: 0, speed: 0.15, sensitivity: 0.005 };
+let objState = { rotX: 0.3, rotY: 0, rotZ: 0, depth: 2 };
 const keys = {};
+
 window.addEventListener("keydown", e => keys[e.code] = true);
 window.addEventListener("keyup", e => keys[e.code] = false);
 
@@ -311,9 +251,8 @@ document.getElementById("saveBtn").addEventListener("click", () => {
 
 window.addEventListener("load", () => {
     const saved = localStorage.getItem("voxelConfig");
-    if(saved){
+    if (saved) {
         const config = JSON.parse(saved);
-
         GRID_SIZE = config.GRID_SIZE;
         CUBE_SIZE = config.CUBE_SIZE;
         objState.depth = config.objStateDepth;
@@ -322,7 +261,6 @@ window.addEventListener("load", () => {
         objState.rotZ = config.rotZ;
         CUBE_SCALE = config.CUBE_SCALE;
         BRIGHTNESS = config.BRIGHTNESS;
-
         camState.pos = config.camPos.slice();
         camState.yaw = config.camYaw;
         camState.pitch = config.camPitch;
@@ -339,25 +277,27 @@ window.addEventListener("load", () => {
     }
 });
 
-let isMouseDown = false;
-let lastX, lastY;
-document.body.addEventListener("mousedown", e => { isMouseDown = true; lastX = e.clientX; lastY = e.clientY; });
-document.body.addEventListener("mouseup", e => isMouseDown = false);
+let isMouseDown = false, lastX, lastY;
+document.body.addEventListener("mousedown", e => {
+    isMouseDown = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+});
+document.body.addEventListener("mouseup", () => isMouseDown = false);
 document.body.addEventListener("mousemove", e => {
-    if(!isMouseDown) return;
-    let dx = e.clientX - lastX;
-    let dy = e.clientY - lastY;
-    lastX = e.clientX; lastY = e.clientY;
+    if (!isMouseDown) return;
+    let dx = e.clientX - lastX, dy = e.clientY - lastY;
+    lastX = e.clientX;
+    lastY = e.clientY;
     camState.yaw -= dx * camState.sensitivity;
     camState.pitch -= dy * camState.sensitivity;
-    if(camState.pitch > Math.PI/2) camState.pitch = Math.PI/2;
-    if(camState.pitch < -Math.PI/2) camState.pitch = -Math.PI/2;
+    camState.pitch = Math.max(-Math.PI/2, Math.min(Math.PI/2, camState.pitch));
 });
 
 const moveSpeed = 0.15;
 
 class ScannerMesh {
-    constructor(gl){
+    constructor(gl) {
         this.gl = gl;
         this.program = this._shader();
         this.posBuffer = gl.createBuffer();
@@ -365,30 +305,43 @@ class ScannerMesh {
         this.vertCount = 0;
     }
 
-    _shader(){
+    _shader() {
         const gl = this.gl;
         const vs = `
-        attribute vec3 aPos;
-        attribute vec4 aCol;
-        uniform mat4 uProj,uView,uModel;
-        varying vec4 vCol;
-        void main(){
-            gl_Position = uProj*uView*uModel*vec4(aPos,1.0);
-            vCol = aCol;
-        }`;
-        const fs = `precision mediump float; varying vec4 vCol; void main(){gl_FragColor=vCol;}`;
-        const sh = (t,s)=>{let x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);return x;}
-        let p=gl.createProgram();
-        gl.attachShader(p,sh(gl.VERTEX_SHADER,vs));
-        gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));
+            attribute vec3 aPos;
+            attribute vec4 aCol;
+            uniform mat4 uProj, uView, uModel;
+            varying vec4 vCol;
+            void main() {
+                gl_Position = uProj * uView * uModel * vec4(aPos, 1.0);
+                vCol = aCol;
+            }
+        `;
+        const fs = `
+            precision mediump float;
+            varying vec4 vCol;
+            void main() {
+                gl_FragColor = vCol;
+            }
+        `;
+
+        const sh = (t, s) => {
+            let x = gl.createShader(t);
+            gl.shaderSource(x, s);
+            gl.compileShader(x);
+            return x;
+        }
+
+        let p = gl.createProgram();
+        gl.attachShader(p, sh(gl.VERTEX_SHADER, vs));
+        gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fs));
         gl.linkProgram(p);
         return p;
     }
 
     updateFromCamera(pixels, w, h) {
         const size = (CUBE_SIZE / GRID_SIZE) * CUBE_SCALE;
-        const pos = [];
-        const col = [];
+        const pos = [], col = [];
 
         for (let y = 0; y < GRID_SIZE; y++) {
             for (let x = 0; x < GRID_SIZE; x++) {
@@ -399,9 +352,7 @@ class ScannerMesh {
                 const g = (pixels[i + 1] / 255) * BRIGHTNESS;
                 const b = (pixels[i + 2] / 255) * BRIGHTNESS;
                 const z = (0.2126 * r + 0.7152 * g + 0.0722 * b) * objState.depth;
-                const cx = x / GRID_SIZE * 4 - 2;
-                const cy = y / GRID_SIZE * 4 - 2;
-                const cz = z;
+                const cx = x / GRID_SIZE * 4 - 2, cy = y / GRID_SIZE * 4 - 2, cz = z;
 
                 const v = [
                     [0, 0, 0], [size, 0, 0], [size, size, 0], [0, size, 0],
@@ -409,9 +360,12 @@ class ScannerMesh {
                 ];
 
                 const faces = [
-                    [0, 1, 2, 0, 2, 3], [4, 5, 6, 4, 6, 7],
-                    [0, 1, 5, 0, 5, 4], [2, 3, 7, 2, 7, 6],
-                    [0, 3, 7, 0, 7, 4], [1, 2, 6, 1, 6, 5],
+                    [0, 1, 2, 0, 2, 3],
+                    [4, 5, 6, 4, 6, 7],
+                    [0, 1, 5, 0, 5, 4],
+                    [2, 3, 7, 2, 7, 6],
+                    [0, 3, 7, 0, 7, 4],
+                    [1, 2, 6, 1, 6, 5]
                 ];
 
                 for (let f = 0; f < faces.length; f++) {
@@ -426,143 +380,181 @@ class ScannerMesh {
 
         this.vertCount = pos.length / 3;
         const gl = this.gl;
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this.posBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pos), gl.DYNAMIC_DRAW);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this.colBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(col), gl.DYNAMIC_DRAW);
     }
 
-    render(view,proj,model){
-        const gl=this.gl;
-        gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+    render(view, proj, model) {
+        const gl = this.gl;
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.enable(gl.DEPTH_TEST);
         gl.useProgram(this.program);
-        const ap=gl.getAttribLocation(this.program,"aPos");
-        gl.bindBuffer(gl.ARRAY_BUFFER,this.posBuffer);
-        gl.vertexAttribPointer(ap,3,gl.FLOAT,false,0,0);
+
+        const ap = gl.getAttribLocation(this.program, "aPos");
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.posBuffer);
+        gl.vertexAttribPointer(ap, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(ap);
-        const ac=gl.getAttribLocation(this.program,"aCol");
-        gl.bindBuffer(gl.ARRAY_BUFFER,this.colBuffer);
-        gl.vertexAttribPointer(ac,4,gl.FLOAT,false,0,0);
+
+        const ac = gl.getAttribLocation(this.program, "aCol");
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.colBuffer);
+        gl.vertexAttribPointer(ac, 4, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(ac);
-        gl.uniformMatrix4fv(gl.getUniformLocation(this.program,"uProj"),false,proj);
-        gl.uniformMatrix4fv(gl.getUniformLocation(this.program,"uView"),false,view);
-        gl.uniformMatrix4fv(gl.getUniformLocation(this.program,"uModel"),false,model);
-        gl.drawArrays(gl.TRIANGLES,0,this.vertCount);
+
+        gl.uniformMatrix4fv(gl.getUniformLocation(this.program, "uProj"), false, proj);
+        gl.uniformMatrix4fv(gl.getUniformLocation(this.program, "uView"), false, view);
+        gl.uniformMatrix4fv(gl.getUniformLocation(this.program, "uModel"), false, model);
+
+        gl.drawArrays(gl.TRIANGLES, 0, this.vertCount);
     }
 }
 
-function matIdent(){return new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);}
-function matPersp(f,a,n,z){ const s=1/Math.tan(f/2), r=1/(n-z); return new Float32Array([s/a,0,0,0, 0,s,0,0, 0,0,(z+n)*r,-1, 0,0,2*z*n*r,0]); }
-function matRot(m,a,[x,y,z]){ const s=Math.sin(a),c=Math.cos(a),t=1-c; const r=[x*x*t+c,x*y*t-z*s,x*z*t+y*s,0,y*x*t+z*s,y*y*t+c,y*z*t-x*s,0,z*x*t-y*s,z*y*t+x*s,z*z*t+c,0,0,0,0,1]; const o=new Float32Array(16); for(let i=0;i<4;i++)for(let j=0;j<4;j++)for(let k=0;k<4;k++)o[i*4+j]+=r[i*4+k]*m[k*4+j]; return o; }
-function matTrans(m,x,y,z){ const o=new Float32Array(m); o[12]+=x; o[13]+=y; o[14]+=z; return o; }
+function matIdent() {
+    return new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
+}
 
-let isVideoFile = false;
-let isPhotoMode = false;
-let isVideoMode = false;
-let currentPhotoData = null;
-let videoStream = null;
-let videoUrl = null;
+function matPersp(f, a, n, z) {
+    const s = 1 / Math.tan(f / 2);
+    const r = 1 / (n - z);
+    return new Float32Array([
+        s/a, 0, 0, 0,
+        0, s, 0, 0,
+        0, 0, (z+n)*r, -1,
+        0, 0, 2*z*n*r, 0
+    ]);
+}
 
-const toggleMode = document.getElementById("toggleMode");
-const photoBtn = document.getElementById("photoBtn");
-const videoBtn = document.getElementById("videoBtn");
+function matRot(m, a, [x, y, z]) {
+    const s = Math.sin(a);
+    const c = Math.cos(a);
+    const t = 1 - c;
 
-toggleMode.addEventListener("change", () => {
-    isPhotoMode = toggleMode.checked;
+    const r = [
+        x*x*t + c,     x*y*t - z*s, x*z*t + y*s, 0,
+        y*x*t + z*s,   y*y*t + c,   y*z*t - x*s, 0,
+        z*x*t - y*s,   z*y*t + x*s, z*z*t + c,   0,
+        0,             0,           0,           1
+    ];
 
-    if (isPhotoMode) {
-        isVideoMode = false;
-        if (!currentPhotoData) {
-            const c = document.getElementById("canvas2d");
-            const ctx = c.getContext("2d");
-            ctx.drawImage(video, 0, 0, c.width, c.height);
-            currentPhotoData = ctx.getImageData(0, 0, c.width, c.height);
-        }
-    } else {
-        currentPhotoData = null;
-        isVideoMode = false;
-        if (videoStream) {
-            video.src = "";
-            video.srcObject = videoStream;
-            video.play();
+    const o = new Float32Array(16);
+    for (let i = 0; i < 4; i++) {
+        for (let j = 0; j < 4; j++) {
+            let sum = 0;
+            for (let k = 0; k < 4; k++) {
+                sum += r[i*4 + k] * m[k*4 + j];
+            }
+            o[i*4 + j] = sum;
         }
     }
+    return o;
+}
 
-    photoBtn.style.display = isPhotoMode ? "block" : "none";
-    videoBtn.style.display = isPhotoMode ? "block" : "none";
-});
+function matTrans(m, x, y, z) {
+    const o = new Float32Array(m);
+    o[12] += x;
+    o[13] += y;
+    o[14] += z;
+    return o;
+}
 
-videoBtn.addEventListener("click", () => {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'video/*,.mp4,.webm,.avi';
+let isPhotoMode = false, isVideoMode = false, currentPhotoData = null, videoUrl = null;
+let videoStream = null;
 
-    fileInput.onchange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        if (videoUrl) {
-            URL.revokeObjectURL(videoUrl);
-        }
-
-        videoUrl = URL.createObjectURL(file);
-        isVideoFile = true;
+toggleMode.addEventListener("change", () => {
+    if (toggleMode.checked) {
+        isPhotoMode = true;
+        isVideoMode = false;
         currentPhotoData = null;
 
-        video.srcObject = null;
-        video.src = videoUrl;
-        video.loop = true;
-        video.play();
-        if (isPhotoMode) {
-            currentPhotoData = null;
-        }
-    };
+        photoBtn.style.display = "block";
+        videoBtn.style.display = "block";
+    } else {
+        isPhotoMode = false;
+        isVideoMode = false;
+        currentPhotoData = null;
 
-    fileInput.click();
+        photoBtn.style.display = "none";
+        videoBtn.style.display = "none";
+
+        if (tempCanvas) {
+            tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+        }
+
+        video.pause();
+        video.src = "";
+        video.srcObject = null;
+    }
 });
 
 photoBtn.addEventListener("click", () => {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
-    fileInput.accept = 'image/*,.png,.jpg,.jpeg';
+    fileInput.accept = 'image/*';
 
-    fileInput.onchange = (e) => {
+    fileInput.onchange = e => {
         const file = e.target.files[0];
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = ev => {
             const img = new Image();
             img.onload = () => {
-                const c2 = document.getElementById("canvas2d");
-                const ctx = c2.getContext("2d");
-                ctx.drawImage(img, 0, 0, c2.width, c2.height);
-
-                currentPhotoData = ctx.getImageData(0, 0, c2.width, c2.height);
-
-                const mesh = window.mesh;
-                if (mesh) {
-                    mesh.updateFromCamera(currentPhotoData.data, c2.width, c2.height);
-                }
+                currentPhotoData = { img };
+                sendTo3DFromPhoto(img);
             };
-            img.src = event.target.result;
+            img.src = ev.target.result;
         };
         reader.readAsDataURL(file);
     };
-
     fileInput.click();
 });
+
+videoBtn.addEventListener("click", () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'video/*';
+
+    fileInput.onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (videoUrl) URL.revokeObjectURL(videoUrl);
+        videoUrl = URL.createObjectURL(file);
+        video.srcObject = null;
+        video.src = videoUrl;
+        video.loop = true;
+        video.play();
+        isVideoMode = true;
+        isPhotoMode = false;
+    };
+    fileInput.click();
+});
+
+function sendTo3DFromVideo() {
+    tempCanvas.width = video.videoWidth;
+    tempCanvas.height = video.videoHeight;
+    tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+    const frame = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+    mesh.updateFromCamera(frame.data, tempCanvas.width, tempCanvas.height);
+}
+
+function sendTo3DFromPhoto(img) {
+    tempCanvas.width = img.width;
+    tempCanvas.height = img.height;
+    tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+    const frame = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+    mesh.updateFromCamera(frame.data, tempCanvas.width, tempCanvas.height);
+}
 
 async function main() {
     const c3 = document.getElementById("canvas3d");
     const c2 = document.getElementById("canvas2d");
     const gl = c3.getContext("webgl");
     const ctx = c2.getContext("2d");
-    const video = document.getElementById("video");
     const toggleCamera = document.getElementById("toggleCamera");
-
-    let videoStream = null;
 
     async function startCamera() {
         if (!videoStream) {
@@ -571,7 +563,7 @@ async function main() {
                 video.srcObject = videoStream;
                 video.play();
             } catch (err) {
-                console.error("Erro ao acessar câmera:", err);
+                console.error(err);
                 toggleCamera.checked = false;
             }
         }
@@ -579,15 +571,14 @@ async function main() {
 
     function stopCamera() {
         if (videoStream) {
-            videoStream.getTracks().forEach(track => track.stop());
+            videoStream.getTracks().forEach(t => t.stop());
             video.srcObject = null;
             videoStream = null;
         }
     }
 
     toggleCamera.addEventListener("change", () => {
-        if (toggleCamera.checked) startCamera();
-        else stopCamera();
+        toggleCamera.checked ? startCamera() : stopCamera();
     });
 
     const mesh = new ScannerMesh(gl);
@@ -601,27 +592,37 @@ async function main() {
         gl.viewport(0, 0, c3.width, c3.height);
 
         let forward = [Math.sin(camState.yaw), 0, Math.cos(camState.yaw)];
-        let right = [Math.sin(camState.yaw + Math.PI / 2), 0, Math.cos(camState.yaw + Math.PI / 2)];
-        if (keys["KeyW"]) camState.pos[0] -= forward[0] * moveSpeed, camState.pos[2] -= forward[2] * moveSpeed;
-        if (keys["KeyS"]) camState.pos[0] += forward[0] * moveSpeed, camState.pos[2] += forward[2] * moveSpeed;
-        if (keys["KeyA"]) camState.pos[0] -= right[0] * moveSpeed, camState.pos[2] -= right[2] * moveSpeed;
-        if (keys["KeyD"]) camState.pos[0] += right[0] * moveSpeed, camState.pos[2] += right[2] * moveSpeed;
+        let right = [Math.sin(camState.yaw + Math.PI/2), 0, Math.cos(camState.yaw + Math.PI/2)];
+
+        if (keys["KeyW"]) {
+            camState.pos[0] -= forward[0] * moveSpeed;
+            camState.pos[2] -= forward[2] * moveSpeed;
+        }
+        if (keys["KeyS"]) {
+            camState.pos[0] += forward[0] * moveSpeed;
+            camState.pos[2] += forward[2] * moveSpeed;
+        }
+        if (keys["KeyA"]) {
+            camState.pos[0] -= right[0] * moveSpeed;
+            camState.pos[2] -= right[2] * moveSpeed;
+        }
+        if (keys["KeyD"]) {
+            camState.pos[0] += right[0] * moveSpeed;
+            camState.pos[2] += right[2] * moveSpeed;
+        }
         if (keys["Space"]) camState.pos[1] += moveSpeed;
         if (keys["ShiftLeft"]) camState.pos[1] -= moveSpeed;
 
         if (isVideoMode && video.readyState === 4) {
-            ctx.drawImage(video, 0, 0, c2.width, c2.height);
-            const frame = ctx.getImageData(0, 0, c2.width, c2.height);
-            mesh.updateFromCamera(frame.data, c2.width, c2.height);
-        }
-        else if (isPhotoMode && currentPhotoData) {
-            ctx.putImageData(currentPhotoData, 0, 0);
-            mesh.updateFromCamera(currentPhotoData.data, c2.width, c2.height);
-        }
-        else if (videoStream && video.readyState === 4) {
-            ctx.drawImage(video, 0, 0, c2.width, c2.height);
-            const frame = ctx.getImageData(0, 0, c2.width, c2.height);
-            mesh.updateFromCamera(frame.data, c2.width, c2.height);
+            sendTo3DFromVideo();
+        } else if (isPhotoMode && currentPhotoData) {
+            sendTo3DFromPhoto(currentPhotoData.img);
+        } else if (videoStream && video.readyState === 4) {
+            tempCanvas.width = video.videoWidth;
+            tempCanvas.height = video.videoHeight;
+            tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+            const frame = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            mesh.updateFromCamera(frame.data, tempCanvas.width, tempCanvas.height);
         }
 
         let view = matIdent();
@@ -634,7 +635,7 @@ async function main() {
         model = matRot(model, objState.rotX, [1, 0, 0]);
         model = matRot(model, objState.rotZ, [0, 0, 1]);
 
-        mesh.render(view, matPersp(Math.PI / 4, c3.width / c3.height, 0.1, 100), model);
+        mesh.render(view, matPersp(Math.PI/4, c3.width/c3.height, 0.1, 100), model);
         requestAnimationFrame(loop);
     }
 
@@ -643,6 +644,5 @@ async function main() {
 
 main();
 </script>
-
 </body>
 </html>
