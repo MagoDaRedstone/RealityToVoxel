@@ -1,117 +1,167 @@
-# RealityToVoxel
+# RealityToVoxel 🧠🧊
 
-**RealityToVoxel** é um experimento em **WebGL puro** que transforma **câmera, vídeos e imagens** do mundo real em uma **reconstrução 3D voxelizada**, diretamente no navegador.
+RealityToVoxel é um experimento pessoal em **WebGL puro**.
 
-Sem frameworks.  
-Sem engines externas.  
-Apenas **HTML + JavaScript + WebGL 1.0**.
+A ideia é simples:
+pegar imagem do mundo real (câmera, imagem ou vídeo)
+e reinterpretar isso como um **objeto 3D voxelizado**, em tempo real,
+direto no navegador.
 
----
+Sem framework.  
+Sem engine.  
+Sem biblioteca externa.
 
-## O que este projeto faz
-
-- Captura vídeo da câmera em tempo real
-- Suporta upload de **vídeos locais** (`.mp4`, `.webm`, `.avi`)
-- Suporta upload de **imagens locais** (`.png`, `.jpg`, `.jpeg`)
-- Converte pixels em um **grid de voxels 3D**
-- Usa **luminância** para gerar profundidade
-- Permite congelar um frame no **Modo Foto**
-- Renderiza tudo com **WebGL 1.0**
-- Navegação livre em 3D (estilo FPS)
-- Interface interativa para ajustes em tempo real
-- Salva configurações via **LocalStorage**
-
-Tudo roda **100% no navegador**, sem backend.
+Só **HTML + JavaScript + WebGL 1.0**.
 
 ---
 
-## Modos de Entrada
+## O que isso faz, na prática
 
-### Câmera ao vivo
-- Captura contínua usando `MediaDevices.getUserMedia`
-- Atualização em tempo real
+- Lê imagem da câmera do navegador
+- Também aceita **imagem** e **vídeo** como entrada
+- Converte os pixels em um **grid de voxels**
+- Usa a **luminância** do pixel pra gerar profundidade
+- Renderiza tudo com WebGL 1.0
+- Dá pra navegar no espaço 3D tipo FPS
+- Dá pra mexer em tudo em tempo real
+- As configs ficam salvas no navegador
 
-### Foto (Imagem)
-- Upload de imagem local
-- Um único frame convertido em voxels
-
-### Vídeo (Arquivo)
-- Upload de vídeo local
-- Leitura frame a frame
-- Pode ser usado em tempo real ou congelado
-
-### Modo Foto
-- Congela exatamente o **último frame visível**
-- Mantém os voxels estáticos
-- Não pausa a câmera, apenas congela a leitura
+Não tem backend.  
+Tudo acontece localmente.
 
 ---
 
 ## Controles
 
-### Movimento da câmera (3D)
-- `W` / `S` → frente / trás
-- `A` / `D` → esquerda / direita
-- `SPACE` → subir
-- `SHIFT` → descer
-- Mouse + clique → rotacionar câmera
+### Câmera 3D
+- `W / S` → frente / trás  
+- `A / D` → esquerda / direita  
+- `SPACE` → sobe  
+- `SHIFT` → desce  
+- Mouse + botão pressionado → gira a câmera  
 
 ### Interface
-- Tamanho do grid
-- Tamanho dos voxels
+- Grid de voxels
+- Tamanho dos cubos
 - Profundidade
+- Rotação X / Y / Z
 - Brilho
-- Rotação nos eixos X / Y / Z
+- Escala
 - Distância da câmera
-- Modo 3D fullscreen
-- Modo foto
-- Upload de imagem e vídeo
+- Modo foto (congelar frame)
+- Upload de imagem
+- Upload de vídeo
+- Fullscreen 3D
 - Salvar configuração
 
 ---
 
-## Tecnologias utilizadas
+## Como os modos realmente funcionam
 
-- HTML5
-- JavaScript (Vanilla)
-- WebGL 1.0
-- Canvas 2D
-- MediaDevices API
-- File API
-- LocalStorage
+### Câmera ao vivo
 
-Nenhuma biblioteca externa é utilizada.
+- Usa `getUserMedia`
+- A câmera fica **sempre ligada**
+- A cada frame:
+  - o vídeo é desenhado no canvas 2D
+  - os pixels são lidos
+  - os voxels são reconstruídos
+
+Não existe pausa real da câmera.
+Só existe **ler ou não ler o frame**.
 
 ---
 
-## Status do projeto
+### Modo Foto
 
-**Experimental / Artístico / Pesquisa**
+- Quando ativa:
+  - captura **o último frame visível**
+  - guarda isso em memória (`ImageData`)
+- Enquanto estiver ativo:
+  - nenhum frame novo é lido
+  - os mesmos pixels são reutilizados
+  - os voxels ficam totalmente estáticos
 
-Este projeto não tem como objetivo ser:
-- um scanner físico preciso
+A câmera pode continuar ligada por trás,
+mas ela não interfere.
+
+É um freeze lógico, não um pause do stream.
+
+---
+
+### Upload de imagem
+
+- Carrega uma imagem local
+- A imagem é desenhada no canvas
+- Convertida uma única vez em voxels
+- Fica estática até trocar de modo ou imagem
+
+---
+
+### Upload de vídeo
+
+- Carrega um vídeo local
+- O vídeo toca em loop
+- Pode ser usado como fonte de voxels frame a frame
+
+Se o modo foto estiver desligado:
+- o vídeo se comporta como uma câmera
+
+Se o modo foto estiver ligado:
+- o último frame é congelado
+- o vídeo pode até continuar tocando, mas não é lido
+
+---
+
+## Tecnologias usadas
+
+- HTML5
+- JavaScript puro
+- WebGL 1.0
+- Canvas 2D
+- MediaDevices API
+- LocalStorage
+
+Nenhuma biblioteca externa.
+
+---
+
+## Estado do projeto
+
+⚠️ Experimental.
+
+Isso **não é**:
+- um scanner 3D preciso
 - um produto comercial
-- uma engine pronta
+- uma engine genérica
 
-Ele existe para exploração criativa, estudo de gráficos 3D
-e experimentação com reconstrução visual.
+É um projeto de exploração:
+gráficos 3D, percepção visual,
+e até onde dá pra forçar WebGL puro no navegador.
 
 ---
 
 ## Licença
 
-Este projeto utiliza uma **licença personalizada**.
+Este projeto usa uma **licença personalizada**.
 
-- Uso permitido para estudo e aprendizado
-- Uso comercial, forks e redistribuição **não são permitidos**
+✔ permitido: estudo, aprendizado, experimentação  
+❌ proibido: uso comercial, forks, redistribuição
 
-Leia o arquivo [`LICENCE`](./LICENCE) para mais detalhes.
+Leia o arquivo [`LICENCE`](./LICENCE).
 
 ---
 
 ## Autor
 
-Criado por **MagoDaRedstone**
+Feito por **MagoDaRedstone** 🧙‍♂️🔥
 
-Projeto independente, feito por curiosidade técnica
-e exploração de reconstrução visual em voxels.
+Projeto independente,
+feito por curiosidade, insistência
+e vontade de entender o que acontece
+quando você transforma pixels em espaço.
+
+---
+
+> Não é sobre copiar o mundo real.  
+> É sobre reinterpretar ele em outro formato.
