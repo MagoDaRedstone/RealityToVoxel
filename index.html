@@ -97,7 +97,6 @@
         }
 
         #full, #modeToggle, #photoBtn, #videoBtn {
-            position: absolute;
             background: rgba(0, 0, 0, 0.75);
             border: 1px solid #0f0;
             color: #0f0;
@@ -150,6 +149,49 @@
             left: auto;
             z-index: 10;
         }
+
+        #topControls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 4px;
+            z-index: 100003;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+
+        #topControls > div {
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid #0f0;
+            border-radius: 4px;
+            padding: 5px 5px;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            cursor: pointer;
+            box-shadow: 0 0 6px rgba(0, 255, 0, 0.5);
+            color: #00ca00;
+        }
+
+        #topControls label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            color: #00ca00;
+        }
+
+        #topControls input[type="checkbox"] {
+            accent-color: #00ca00;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
     </style>
 </head>
 <body>
@@ -172,8 +214,8 @@
         <button id="saveBtn">Save Config</button>
     </div>
 
-    <div id="topControls" style="position: absolute; top: 10px; right: 10px; display: flex; z-index: 100003; width: 36vh;">
-        <div id="cameraToggle" style="background: rgba(0,0,0,0.75); padding: 8px; border: 1px solid #0f0; color: #0f0; display: flex; align-items: center;">
+    <div id="topControls">
+        <div id="cameraToggle">
             <label><input type="checkbox" id="toggleCamera"> LIGAR CÂMERA</label>
         </div>
         <div id="modeToggle">
@@ -183,6 +225,7 @@
             <label><input type="checkbox" id="toggleFullscreen"> 3D FULLSCREEN</label>
         </div>
     </div>
+
     <button id="photoBtn">ENVIAR FOTO</button>
     <button id="videoBtn">ENVIAR VIDEO</button>
     <div class="label controls">
@@ -549,6 +592,25 @@ function sendTo3DFromPhoto(img) {
     mesh.updateFromCamera(frame.data, tempCanvas.width, tempCanvas.height);
 }
 
+function sendTo3DFromCamera() {
+    if (!videoStream || video.readyState !== 4) return;
+
+    const c2 = document.getElementById("canvas2d");
+    const ctx = c2.getContext("2d");
+    c2.width = c2.clientWidth;
+    c2.height = c2.clientHeight;
+    ctx.clearRect(0, 0, c2.width, c2.height);
+    ctx.drawImage(video, 0, 0, c2.width, c2.height);
+
+    const tempCanvas = document.getElementById("temp");
+    const tempCtx = tempCanvas.getContext("2d");
+    tempCanvas.width = video.videoWidth;
+    tempCanvas.height = video.videoHeight;
+    tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+    const frame = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+    mesh.updateFromCamera(frame.data, tempCanvas.width, tempCanvas.height);
+}
+
 async function main() {
     const c3 = document.getElementById("canvas3d");
     const c2 = document.getElementById("canvas2d");
@@ -613,16 +675,12 @@ async function main() {
         if (keys["Space"]) camState.pos[1] += moveSpeed;
         if (keys["ShiftLeft"]) camState.pos[1] -= moveSpeed;
 
-        if (isVideoMode && video.readyState === 4) {
+        if (!isPhotoMode && !isVideoMode && videoStream && video.readyState === 4) {
+            sendTo3DFromCamera();
+        } else if (isVideoMode && video.readyState === 4) {
             sendTo3DFromVideo();
         } else if (isPhotoMode && currentPhotoData) {
             sendTo3DFromPhoto(currentPhotoData.img);
-        } else if (videoStream && video.readyState === 4) {
-            tempCanvas.width = video.videoWidth;
-            tempCanvas.height = video.videoHeight;
-            tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
-            const frame = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-            mesh.updateFromCamera(frame.data, tempCanvas.width, tempCanvas.height);
         }
 
         let view = matIdent();
