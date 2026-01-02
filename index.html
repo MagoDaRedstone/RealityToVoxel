@@ -99,8 +99,8 @@ video {
 
 #full {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 0px;
+    right: -6px;
 
     background: rgba(0, 0, 0, 0.75);
     border: 1px solid #0f0;
@@ -149,8 +149,8 @@ video {
 
 #modeToggle {
     position: absolute;
-    top: 10px;
-    right: 153px;
+    top: 0px;
+    right: 125px;
     background: rgba(0, 0, 0, 0.75);
     border: 1px solid #0f0;
     padding: 8px 12px;
@@ -219,22 +219,33 @@ video {
         CAM DIST: <input type="range" id="camDistSlider" min="1" max="20" step="0.1" value="6">
         <button id="saveBtn">Save Config</button>
     </div>
-    <div class="container" id="full">
-        <label>
-            <input type="checkbox" id="toggleFullscreen">
-            3D FULLSCREEN
-        </label>
-    </div>
-    <div class="container" id="modeToggle">
-        <label>
-            <input type="checkbox" id="toggleMode">
-            MODO FOTO
-        </label>
-    </div>
+    <div id="topControls" style="position:absolute; top:10px; right:10px; display:flex;  z-index:100003;width: 36vh;">
+        <div id="cameraToggle" style="background: rgba(0,0,0,0.75); padding:8px; border:1px solid #0f0; color:#0f0; display:flex; align-items:center;">
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+                <input type="checkbox" id="toggleCamera" style="accent-color:#0f0;">
+                LIGAR CÂMERA
+            </label>
+        </div>
 
+        <div id="modeToggle" style="background: rgba(0,0,0,0.75); padding:8px; border:1px solid #0f0; color:#0f0; display:flex; align-items:center;">
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+                <input type="checkbox" id="toggleMode" style="accent-color:#0f0;">
+                MODOS
+            </label>
+        </div>
+
+        <div id="full" style="background: rgba(0,0,0,0.75); padding:8px; border:1px solid #0f0; color:#0f0; display:flex; align-items:center;">
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+                <input type="checkbox" id="toggleFullscreen" style="accent-color:#0f0;">
+                3D FULLSCREEN
+            </label>
+        </div>
+    </div>
     <button id="photoBtn">ENVIAR FOTO</button>
     <button id="videoBtn">ENVIAR VIDEO</button>
     <div class="label controls">
+        se quiser enviar foto/video<br>
+        marke o checkbox: MODOS<br>
         CONTROLES CÂMERA<br>
         WASD + Mouse<br>
         Space / Shift
@@ -543,32 +554,60 @@ photoBtn.addEventListener("click", () => {
     fileInput.click();
 });
 
-async function main(){
-    const c3=document.getElementById("canvas3d");
-    const c2=document.getElementById("canvas2d");
-    const gl=c3.getContext("webgl");
-    const ctx=c2.getContext("2d");
-    const video=document.getElementById("video");
+async function main() {
+    const c3 = document.getElementById("canvas3d");
+    const c2 = document.getElementById("canvas2d");
+    const gl = c3.getContext("webgl");
+    const ctx = c2.getContext("2d");
+    const video = document.getElementById("video");
+    const toggleCamera = document.getElementById("toggleCamera");
 
-    videoStream = await navigator.mediaDevices.getUserMedia({video:true});
-    video.srcObject = videoStream;
+    let videoStream = null;
 
-    const mesh=new ScannerMesh(gl);
+    async function startCamera() {
+        if (!videoStream) {
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = videoStream;
+                video.play();
+            } catch (err) {
+                console.error("Erro ao acessar câmera:", err);
+                toggleCamera.checked = false;
+            }
+        }
+    }
+
+    function stopCamera() {
+        if (videoStream) {
+            videoStream.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+            videoStream = null;
+        }
+    }
+
+    toggleCamera.addEventListener("change", () => {
+        if (toggleCamera.checked) startCamera();
+        else stopCamera();
+    });
+
+    const mesh = new ScannerMesh(gl);
     window.mesh = mesh;
 
-    function loop(){
-        c3.width=c3.clientWidth; c3.height=c3.clientHeight;
-        c2.width=c2.clientWidth; c2.height=c2.clientHeight;
-        gl.viewport(0,0,c3.width,c3.height);
+    function loop() {
+        c3.width = c3.clientWidth;
+        c3.height = c3.clientHeight;
+        c2.width = c2.clientWidth;
+        c2.height = c2.clientHeight;
+        gl.viewport(0, 0, c3.width, c3.height);
 
         let forward = [Math.sin(camState.yaw), 0, Math.cos(camState.yaw)];
-        let right = [Math.sin(camState.yaw + Math.PI/2), 0, Math.cos(camState.yaw + Math.PI/2)];
-        if(keys["KeyW"]) camState.pos[0] -= forward[0]*moveSpeed, camState.pos[2] -= forward[2]*moveSpeed;
-        if(keys["KeyS"]) camState.pos[0] += forward[0]*moveSpeed, camState.pos[2] += forward[2]*moveSpeed;
-        if(keys["KeyA"]) camState.pos[0] -= right[0]*moveSpeed, camState.pos[2] -= right[2]*moveSpeed;
-        if(keys["KeyD"]) camState.pos[0] += right[0]*moveSpeed, camState.pos[2] += right[2]*moveSpeed;
-        if(keys["Space"]) camState.pos[1] += moveSpeed;
-        if(keys["ShiftLeft"]) camState.pos[1] -= moveSpeed;
+        let right = [Math.sin(camState.yaw + Math.PI / 2), 0, Math.cos(camState.yaw + Math.PI / 2)];
+        if (keys["KeyW"]) camState.pos[0] -= forward[0] * moveSpeed, camState.pos[2] -= forward[2] * moveSpeed;
+        if (keys["KeyS"]) camState.pos[0] += forward[0] * moveSpeed, camState.pos[2] += forward[2] * moveSpeed;
+        if (keys["KeyA"]) camState.pos[0] -= right[0] * moveSpeed, camState.pos[2] -= right[2] * moveSpeed;
+        if (keys["KeyD"]) camState.pos[0] += right[0] * moveSpeed, camState.pos[2] += right[2] * moveSpeed;
+        if (keys["Space"]) camState.pos[1] += moveSpeed;
+        if (keys["ShiftLeft"]) camState.pos[1] -= moveSpeed;
 
         if (isVideoMode && video.readyState === 4) {
             ctx.drawImage(video, 0, 0, c2.width, c2.height);
@@ -577,33 +616,31 @@ async function main(){
         }
         else if (isPhotoMode && currentPhotoData) {
             ctx.putImageData(currentPhotoData, 0, 0);
-            mesh.updateFromCamera(
-                currentPhotoData.data,
-                c2.width,
-                c2.height
-            );
+            mesh.updateFromCamera(currentPhotoData.data, c2.width, c2.height);
         }
-        else if (video.readyState === 4) {
+        else if (videoStream && video.readyState === 4) {
             ctx.drawImage(video, 0, 0, c2.width, c2.height);
             const frame = ctx.getImageData(0, 0, c2.width, c2.height);
             mesh.updateFromCamera(frame.data, c2.width, c2.height);
         }
 
-        let view=matIdent();
-        view=matRot(view,camState.pitch,[1,0,0]);
-        view=matRot(view,camState.yaw,[0,1,0]);
-        view=matTrans(view,-camState.pos[0],-camState.pos[1],-camState.pos[2]);
+        let view = matIdent();
+        view = matRot(view, camState.pitch, [1, 0, 0]);
+        view = matRot(view, camState.yaw, [0, 1, 0]);
+        view = matTrans(view, -camState.pos[0], -camState.pos[1], -camState.pos[2]);
 
-        let model=matIdent();
-        model=matRot(model,objState.rotY,[0,1,0]);
-        model=matRot(model,objState.rotX,[1,0,0]);
-        model=matRot(model,objState.rotZ,[0,0,1]);
+        let model = matIdent();
+        model = matRot(model, objState.rotY, [0, 1, 0]);
+        model = matRot(model, objState.rotX, [1, 0, 0]);
+        model = matRot(model, objState.rotZ, [0, 0, 1]);
 
-        mesh.render(view,matPersp(Math.PI/4,c3.width/c3.height,0.1,100),model);
+        mesh.render(view, matPersp(Math.PI / 4, c3.width / c3.height, 0.1, 100), model);
         requestAnimationFrame(loop);
     }
+
     loop();
 }
+
 main();
 </script>
 
