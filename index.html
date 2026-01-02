@@ -192,10 +192,18 @@ video {
 #videoBtn:hover {
     background: rgba(0, 255, 0, 0.1);
 }
+
+.controls{
+    top:auto;
+    bottom:10px;
+    right:10px;
+    left:auto;
+    z-index: 10;
+}
+
 </style>
 </head>
 <body>
-
 <div class="container" id="container3d">
     <canvas id="canvas3d"></canvas>
     <div class="label">RECONSTRUÇÃO 3D (OBJETOS)</div>
@@ -226,6 +234,11 @@ video {
 
     <button id="photoBtn">ENVIAR FOTO</button>
     <button id="videoBtn">ENVIAR VIDEO</button>
+    <div class="label controls">
+        CONTROLES CÂMERA<br>
+        WASD + Mouse<br>
+        Space / Shift
+    </div>
 </div>
 
 <div class="container" id="container2d">
@@ -442,6 +455,7 @@ let videoUrl = null;
 
 const toggleMode = document.getElementById("toggleMode");
 const photoBtn = document.getElementById("photoBtn");
+const videoBtn = document.getElementById("videoBtn");
 
 toggleMode.addEventListener("change", () => {
     isPhotoMode = toggleMode.checked;
@@ -468,7 +482,6 @@ toggleMode.addEventListener("change", () => {
     videoBtn.style.display = isPhotoMode ? "block" : "none";
 });
 
-const videoBtn = document.getElementById("videoBtn");
 videoBtn.addEventListener("click", () => {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
