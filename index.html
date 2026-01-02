@@ -128,6 +128,70 @@ video {
     cursor: pointer;
 }
 
+#photoBtn {
+    position: absolute;
+    top: 50px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.75);
+    border: 1px solid #0f0;
+    padding: 8px 12px;
+    color: #0f0;
+    font-size: 12px;
+    z-index: 100001;
+    cursor: pointer;
+    display: none;
+    box-shadow: 0 0 10px rgba(0,255,0,0.4);
+}
+
+#photoBtn:hover {
+    background: rgba(0, 255, 0, 0.1);
+}
+
+#modeToggle {
+    position: absolute;
+    top: 10px;
+    right: 153px;
+    background: rgba(0, 0, 0, 0.75);
+    border: 1px solid #0f0;
+    padding: 8px 12px;
+    color: #0f0;
+    font-size: 12px;
+    z-index: 100000;
+    pointer-events: auto;
+    box-shadow: 0 0 10px rgba(0,255,0,0.4);
+}
+
+#modeToggle label {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#modeToggle input[type="checkbox"] {
+    accent-color: #0f0;
+    cursor: pointer;
+}
+
+#videoBtn {
+    position: absolute;
+    top: 90px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.75);
+    border: 1px solid #0f0;
+    padding: 8px 12px;
+    color: #0f0;
+    font-size: 12px;
+    z-index: 100002;
+    cursor: pointer;
+    display: none;
+    box-shadow: 0 0 10px rgba(0,255,0,0.4);
+}
+
+#videoBtn:hover {
+    background: rgba(0, 255, 0, 0.1);
+}
 </style>
 </head>
 <body>
@@ -153,6 +217,15 @@ video {
             3D FULLSCREEN
         </label>
     </div>
+    <div class="container" id="modeToggle">
+        <label>
+            <input type="checkbox" id="toggleMode">
+            MODO FOTO
+        </label>
+    </div>
+
+    <button id="photoBtn">ENVIAR FOTO</button>
+    <button id="videoBtn">ENVIAR VIDEO</button>
 </div>
 
 <div class="container" id="container2d">
@@ -360,14 +433,115 @@ function matPersp(f,a,n,z){ const s=1/Math.tan(f/2), r=1/(n-z); return new Float
 function matRot(m,a,[x,y,z]){ const s=Math.sin(a),c=Math.cos(a),t=1-c; const r=[x*x*t+c,x*y*t-z*s,x*z*t+y*s,0,y*x*t+z*s,y*y*t+c,y*z*t-x*s,0,z*x*t-y*s,z*y*t+x*s,z*z*t+c,0,0,0,0,1]; const o=new Float32Array(16); for(let i=0;i<4;i++)for(let j=0;j<4;j++)for(let k=0;k<4;k++)o[i*4+j]+=r[i*4+k]*m[k*4+j]; return o; }
 function matTrans(m,x,y,z){ const o=new Float32Array(m); o[12]+=x; o[13]+=y; o[14]+=z; return o; }
 
+let isVideoFile = false;
+let isPhotoMode = false;
+let isVideoMode = false;
+let currentPhotoData = null;
+let videoStream = null;
+let videoUrl = null;
+
+const toggleMode = document.getElementById("toggleMode");
+const photoBtn = document.getElementById("photoBtn");
+
+toggleMode.addEventListener("change", () => {
+    isPhotoMode = toggleMode.checked;
+
+    if (isPhotoMode) {
+        isVideoMode = false;
+        if (!currentPhotoData) {
+            const c = document.getElementById("canvas2d");
+            const ctx = c.getContext("2d");
+            ctx.drawImage(video, 0, 0, c.width, c.height);
+            currentPhotoData = ctx.getImageData(0, 0, c.width, c.height);
+        }
+    } else {
+        currentPhotoData = null;
+        isVideoMode = false;
+        if (videoStream) {
+            video.src = "";
+            video.srcObject = videoStream;
+            video.play();
+        }
+    }
+
+    photoBtn.style.display = isPhotoMode ? "block" : "none";
+    videoBtn.style.display = isPhotoMode ? "block" : "none";
+});
+
+const videoBtn = document.getElementById("videoBtn");
+videoBtn.addEventListener("click", () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'video/*,.mp4,.webm,.avi';
+
+    fileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (videoUrl) {
+            URL.revokeObjectURL(videoUrl);
+        }
+
+        videoUrl = URL.createObjectURL(file);
+        isVideoFile = true;
+        currentPhotoData = null;
+
+        video.srcObject = null;
+        video.src = videoUrl;
+        video.loop = true;
+        video.play();
+        if (isPhotoMode) {
+            currentPhotoData = null;
+        }
+    };
+
+    fileInput.click();
+});
+
+photoBtn.addEventListener("click", () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*,.png,.jpg,.jpeg';
+
+    fileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                const c2 = document.getElementById("canvas2d");
+                const ctx = c2.getContext("2d");
+                ctx.drawImage(img, 0, 0, c2.width, c2.height);
+
+                currentPhotoData = ctx.getImageData(0, 0, c2.width, c2.height);
+
+                const mesh = window.mesh;
+                if (mesh) {
+                    mesh.updateFromCamera(currentPhotoData.data, c2.width, c2.height);
+                }
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    fileInput.click();
+});
+
 async function main(){
     const c3=document.getElementById("canvas3d");
     const c2=document.getElementById("canvas2d");
     const gl=c3.getContext("webgl");
     const ctx=c2.getContext("2d");
     const video=document.getElementById("video");
-    video.srcObject=await navigator.mediaDevices.getUserMedia({video:true});
+
+    videoStream = await navigator.mediaDevices.getUserMedia({video:true});
+    video.srcObject = videoStream;
+
     const mesh=new ScannerMesh(gl);
+    window.mesh = mesh;
 
     function loop(){
         c3.width=c3.clientWidth; c3.height=c3.clientHeight;
@@ -383,9 +557,23 @@ async function main(){
         if(keys["Space"]) camState.pos[1] += moveSpeed;
         if(keys["ShiftLeft"]) camState.pos[1] -= moveSpeed;
 
-        if(video.readyState===4){
-            ctx.drawImage(video,0,0,c2.width,c2.height);
-            mesh.updateFromCamera(ctx.getImageData(0,0,c2.width,c2.height).data,c2.width,c2.height);
+        if (isVideoMode && video.readyState === 4) {
+            ctx.drawImage(video, 0, 0, c2.width, c2.height);
+            const frame = ctx.getImageData(0, 0, c2.width, c2.height);
+            mesh.updateFromCamera(frame.data, c2.width, c2.height);
+        }
+        else if (isPhotoMode && currentPhotoData) {
+            ctx.putImageData(currentPhotoData, 0, 0);
+            mesh.updateFromCamera(
+                currentPhotoData.data,
+                c2.width,
+                c2.height
+            );
+        }
+        else if (video.readyState === 4) {
+            ctx.drawImage(video, 0, 0, c2.width, c2.height);
+            const frame = ctx.getImageData(0, 0, c2.width, c2.height);
+            mesh.updateFromCamera(frame.data, c2.width, c2.height);
         }
 
         let view=matIdent();
