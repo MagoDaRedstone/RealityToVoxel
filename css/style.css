@@ -1,0 +1,190 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #000;
+    overflow: hidden;
+    height: 100vh;
+    font-family: monospace;
+}
+
+#container3d, #container2d {
+    position: absolute;
+    top: 0;
+    height: 100vh;
+}
+
+#container3d {
+    left: 0;
+    width: 50vw;
+    z-index: 2;
+    border-right: 1px solid #222;
+}
+
+#container2d {
+    right: 0;
+    width: 50vw;
+    z-index: 1;
+}
+
+.container {
+    position: relative;
+    overflow: hidden;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: crosshair;
+}
+
+video {
+    display: none;
+}
+
+.label {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: #0f0;
+    background: rgba(0, 0, 0, .7);
+    padding: 5px;
+    border: 1px solid #0f0;
+    pointer-events: none;
+}
+
+.slider-container {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    color: #0f0;
+    background: rgba(0, 0, 0, .7);
+    padding: 8px;
+    border: 1px solid #0f0;
+}
+
+.slider-container input {
+    width: 120px;
+}
+
+#container3d.fullscreen3d {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 99999;
+    border: none;
+}
+
+#container3d.fullscreen3d canvas {
+    width: 100%;
+    height: 100%;
+}
+
+#container3d.fullscreen3d ~ #container2d {
+    pointer-events: none;
+    opacity: 0;
+}
+
+#full, #modeToggle, #photoBtn, #videoBtn {
+    background: rgba(0, 0, 0, 0.75);
+    border: 1px solid #0f0;
+    color: #0f0;
+    padding: 8px 12px;
+    font-size: 12px;
+    z-index: 100000;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
+}
+
+#photoBtn, #videoBtn {
+    position: absolute;
+}
+
+#full {
+    top: 0;
+    right: -6px;
+}
+
+#modeToggle {
+    top: 0;
+    right: 125px;
+}
+
+#photoBtn {
+    top: 50px;
+    right: 10px;
+    display: none;
+}
+
+#videoBtn {
+    top: 90px;
+    right: 10px;
+    display: none;
+}
+
+#full label, #modeToggle label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+}
+
+#full input[type="checkbox"], #modeToggle input[type="checkbox"] {
+    accent-color: #0f0;
+    cursor: pointer;
+}
+
+.controls {
+    top: auto;
+    bottom: 10px;
+    right: 10px;
+    left: auto;
+    z-index: 10;
+}
+
+#topControls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 4px;
+    z-index: 100003;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+#topControls > div {
+    background: rgba(0, 0, 0, 0.75);
+    border: 1px solid #0f0;
+    border-radius: 4px;
+    padding: 5px 5px;
+    font-size: 12px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 0 6px rgba(0, 255, 0, 0.5);
+    color: #00ca00;
+}
+
+#topControls label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    color: #00ca00;
+}
+
+#topControls input[type="checkbox"] {
+    accent-color: #00ca00;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    border-radius: 3px;
+}
