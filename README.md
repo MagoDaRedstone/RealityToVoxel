@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="https://magodaredstone.github.io/RealityToVoxel/" target="_blank">
+    <img src="https://img.shields.io/badge/RealityToVoxel-GitHub%20Pages-0aa0ff?style=for-the-badge&logo=github" />
+  </a>
+</p>
+
 # RealityToVoxel 🧠🧊
 
 RealityToVoxel é um experimento pessoal em **WebGL puro**.
