@@ -246,8 +246,26 @@
     <div class="label">CÂMERA</div>
     <video id="video" autoplay playsinline></video>
 </div>
+<div id="fpsCounter" class="label" style="top: 40px;">
+    FPS: --
+</div>
 
 <script>
+const fpsLabel = document.getElementById("fpsCounter");
+let fpsLast = performance.now();
+let fpsFrames = 0;
+
+function fpsTick() {
+    fpsFrames++;
+    const now = performance.now();
+    if (now - fpsLast >= 500) {
+        const fps = Math.round((fpsFrames * 1000) / (now - fpsLast));
+        fpsLabel.textContent = "FPS: " + fps;
+        fpsFrames = 0;
+        fpsLast = now;
+    }
+}
+
 const toggleFullscreen = document.getElementById("toggleFullscreen");
 const container3d = document.getElementById("container3d");
 const toggleMode = document.getElementById("toggleMode");
@@ -698,6 +716,7 @@ async function main() {
         model = matRot(model, objState.rotZ, [0, 0, 1]);
 
         mesh.render(view, matPersp(Math.PI/4, c3.width/c3.height, 0.1, 100), model);
+        fpsTick();
         requestAnimationFrame(loop);
     }
 
