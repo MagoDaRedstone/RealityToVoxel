@@ -18,14 +18,14 @@ body {
 
 #container3d {
     left: 0;
-    width: 50vw;
+    width: 53vw;
     z-index: 2;
     border-right: 1px solid #222;
 }
 
 #container2d {
     right: 0;
-    width: 50vw;
+    width: 47vw;
     z-index: 1;
 }
 
@@ -187,4 +187,37 @@ video {
     height: 16px;
     cursor: pointer;
     border-radius: 3px;
+}
+
+#canvas3d {
+    transform: translateZ(0);
+    image-rendering: pixelated;
+    -webkit-font-smoothing: antialiased;
+}
+
+#container3d {
+    will-change: transform;
+    backface-visibility: hidden;
+}
+
+.label, .slider-container {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+#container3d.fullscreen3d canvas {
+    image-rendering: optimizeSpeed;
+}
+
+#toggleFullScreen:checked ~ #container3d {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 99999;
+    border: none;
+}
+
+#toggleFullScreen:checked ~ #container2d {
+    display: none;
 }
