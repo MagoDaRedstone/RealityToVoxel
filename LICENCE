@@ -1,75 +1,19 @@
-Licença Personalizada RealityToVoxel (RTVCL v1.0)
+Copyright (c) 2026 [SEU NOME OU NICKNAME]
 
-Copyright (c) 2025 – MagoDaRedstone
-Todos os direitos reservados.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Esta licença define como o software RealityToVoxel e seu código-fonte podem ser usados.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-Ao acessar, visualizar ou utilizar este software, você concorda com os termos abaixo.
-
-✅ O que você PODE fazer
-
-Você pode:
-
-Usar o software para fins pessoais, educacionais, de estudo, pesquisa ou experimentação.
-
-Ler, estudar e analisar o código-fonte.
-
-Aprender com as ideias, técnicas e conceitos utilizados no projeto.
-
-Criar um novo projeto original, inspirado neste trabalho, desde que o código-fonte original não seja reutilizado, copiado ou adaptado diretamente.
-
-⚠️ Condições obrigatórias
-
-Se você modificar qualquer parte do software, obrigatoriamente:
-
-Deve alterar o nome do projeto.
-
-Deve remover qualquer referência ao nome “RealityToVoxel”.
-
-Não pode apresentar a versão modificada como sendo oficial, original ou associada ao autor deste projeto.
-
-❌ O que é PROIBIDO
-
-Você não pode, em hipótese alguma:
-
-Vender, revender, sublicenciar ou distribuir o software com fins comerciais.
-
-Fazer fork deste repositório, total ou parcial.
-
-Reenviar, espelhar ou hospedar o mesmo código (ou código substancialmente semelhante) em outro repositório.
-
-Copiar, colar ou reutilizar o código-fonte em outro projeto, mesmo que com modificações.
-
-Publicar derivados que sejam funcionalmente equivalentes ou estruturalmente muito semelhantes.
-
-Alegar autoria, propriedade ou direitos sobre este software.
-
-Remover ou alterar avisos de copyright.
-
-Utilizar o software em produtos comerciais, serviços pagos, SaaS, plataformas fechadas, NFTs ou qualquer sistema monetizado.
-
-Usar este código como parte de bases de dados para treinamento de IA ou modelos de machine learning.
-
-🧠 Propriedade intelectual
-
-Todo o software, código-fonte e conceitos implementados permanecem como propriedade intelectual exclusiva do autor.
-
-Esta licença não concede transferência de direitos, apenas permissão limitada de uso conforme descrito acima.
-
-⚠️ Isenção de garantia
-
-O software é fornecido “no estado em que se encontra”, sem qualquer tipo de garantia, expressa ou implícita.
-
-O autor não se responsabiliza por danos, perdas ou problemas decorrentes do uso do software.
-
-⛔ Encerramento da licença
-
-Qualquer violação dos termos desta licença encerra automaticamente o direito de uso do software.
-
-📩 Contato
-
-Para permissões além do que está descrito nesta licença, entre em contato com o autor:
-
-Autor: MagoDaRedstone
-Projeto: RealityToVoxel
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
