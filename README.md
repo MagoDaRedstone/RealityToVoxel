@@ -23,112 +23,60 @@ Só **HTML + JavaScript + WebGL 1.0**.
 
 ## O que isso faz, na prática
 
-- Lê imagem da câmera do navegador
-- Também aceita **imagem** e **vídeo** como entrada
-- Converte os pixels em um **grid de voxels**
-- Usa a **luminância** do pixel pra gerar profundidade
-- Renderiza tudo com WebGL 1.0
-- Dá pra navegar no espaço 3D tipo FPS
-- Dá pra mexer em tudo em tempo real
-- As configs ficam salvas no navegador
+- Lê imagem da câmera do navegador via `getUserMedia`
+- Também aceita **imagem** e **vídeo** local como entrada
+- Converte os pixels em um **grid de voxels** ou **mesh**
+- Usa a **luminância** do pixel pra gerar profundidade no eixo Z
+- Renderiza tudo com WebGL 1.0 (Buffers de Vértices e Cores)
+- Dá pra navegar no espaço 3D tipo FPS com matrizes de visão
+- As configs ficam salvas no navegador via `localStorage`
 
 Não tem backend.  
-Tudo acontece localmente.
+Tudo acontece localmente na GPU.
 
 ---
 
-## Controles
+## Controles e Interface
 
-### Câmera 3D
+### Navegação 3D
 - `W / S` → frente / trás  
 - `A / D` → esquerda / direita  
 - `SPACE` → sobe  
 - `SHIFT` → desce  
-- Mouse + botão pressionado → gira a câmera  
+- Mouse + botão pressionado → gira a câmera (Pitch/Yaw)
 
-### Interface
-- Grid de voxels
-- Tamanho dos cubos
-- Profundidade
-- Rotação X / Y / Z
-- Brilho
-- Escala
-- Distância da câmera
-- Modo foto (congelar frame)
-- Upload de imagem
-- Upload de vídeo
-- Fullscreen 3D
-- Salvar configuração
+### Sistema de Modos
+- **MODOS (`toggleMode`)** → Alterna entre o feed da **câmera ao vivo** e o painel de **upload** (para injetar seus próprios vídeos ou fotos).
+- **mesh/cube (`toggleMesh`)** → Muda a geometria em tempo real. Você escolhe entre ver cubos sólidos individuais (**Voxel**) ou uma malha de superfície conectada (**Mesh**).
+- **FOTO** → Congela o frame atual e gera uma captura estática pra você rotacionar e analisar o 3D sem o vídeo mudar os vértices.
+
+### Sliders de Ajuste
+- **Grid Size** → Resolução da amostragem de pixels.
+- **Depth** → Intensidade do relevo no eixo Z.
+- **Cubo Size** → Tamanho das primitivas 3D.
+- **Brightness** → Ganho de cor nos Shaders.
+- **Rotation X/Y/Z** → Manipulação da matriz de modelo do objeto.
 
 ---
 
-## Como os modos realmente funcionam
+## Como funciona o sistema
 
-### Câmera ao vivo
+### Renderização (WebGL)
+O motor não usa bibliotecas de terceiros. Toda a matemática de matrizes (`mat4`) está no `object.js`. O sistema compila os Shaders em tempo real e atualiza os buffers de vértices conforme o brilho da imagem captada.
 
-- Usa `getUserMedia`
-- A câmera fica **sempre ligada**
-- A cada frame:
-  - o vídeo é desenhado no canvas 2D
-  - os pixels são lidos
-  - os voxels são reconstruídos
-
-Não existe pausa real da câmera.
-Só existe **ler ou não ler o frame**.
+### Processamento de Frame
+- O vídeo/imagem é desenhado num canvas 2D oculto.
+- O sistema lê o `ImageData` (RGBA).
+- A cada ciclo, os vértices são recalculados: Pixels mais claros ficam "mais altos" (Z positivo), pixels escuros ficam "mais baixos".
 
 ---
 
-### Modo Foto
+## Arquivos do Projeto
 
-- Quando ativa:
-  - captura **o último frame visível**
-  - guarda isso em memória (`ImageData`)
-- Enquanto estiver ativo:
-  - nenhum frame novo é lido
-  - os mesmos pixels são reutilizados
-  - os voxels ficam totalmente estáticos
-
-A câmera pode continuar ligada por trás,
-mas ela não interfere.
-
-É um freeze lógico, não um pause do stream.
-
----
-
-### Upload de imagem
-
-- Carrega uma imagem local
-- A imagem é desenhada no canvas
-- Convertida uma única vez em voxels
-- Fica estática até trocar de modo ou imagem
-
----
-
-### Upload de vídeo
-
-- Carrega um vídeo local
-- O vídeo toca em loop
-- Pode ser usado como fonte de voxels frame a frame
-
-Se o modo foto estiver desligado:
-- o vídeo se comporta como uma câmera
-
-Se o modo foto estiver ligado:
-- o último frame é congelado
-- o vídeo pode até continuar tocando, mas não é lido
-
----
-
-## Tecnologias usadas
-
-- HTML5
-- JavaScript puro
-- WebGL 1.0
-- Canvas 2D
-- MediaDevices API
-- LocalStorage
-
-Nenhuma biblioteca externa.
+- `main.js` → Loop de renderização e lógica da câmera FPS.
+- `object.js` → Biblioteca de matrizes e definições de geometria (Cubo/Mesh).
+- `scan.js` → Inicialização do WebGL e compilação de Shaders.
+- `listern.js` → Gerenciador de eventos de teclado, mouse e interface.
 
 ---
 
@@ -137,13 +85,11 @@ Nenhuma biblioteca externa.
 ⚠️ Experimental.
 
 Isso **não é**:
-- um scanner 3D preciso
+- um scanner 3D de alta precisão
 - um produto comercial
 - uma engine genérica
 
-É um projeto de exploração:
-gráficos 3D, percepção visual,
-e até onde dá pra forçar WebGL puro no navegador.
+É um projeto de exploração: gráficos 3D de baixo nível, performance de buffers e manipulação de matrizes no navegador.
 
 ---
 
@@ -152,7 +98,7 @@ e até onde dá pra forçar WebGL puro no navegador.
 Este projeto usa uma **licença personalizada**.
 
 ✔ permitido: estudo, aprendizado, experimentação  
-❌ proibido: uso comercial, forks, redistribuição
+❌ proibido: uso comercial, forks públicos, redistribuição
 
 Leia o arquivo [`LICENCE`](./LICENCE).
 
@@ -161,11 +107,6 @@ Leia o arquivo [`LICENCE`](./LICENCE).
 ## Autor
 
 Feito por **MagoDaRedstone** 🧙‍♂️🔥
-
-Projeto independente,
-feito por curiosidade, insistência
-e vontade de entender o que acontece
-quando você transforma pixels em espaço.
 
 ---
 
