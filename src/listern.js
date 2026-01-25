@@ -1,3 +1,8 @@
+document.getElementById('toggleMesh').checked = false;
+document.getElementById('toggleCamera').checked = false;
+document.getElementById('toggleMode').checked = false;
+document.getElementById('toggleFullscreen').checked = false;
+
 toggleFullscreen.addEventListener("change", () => {
     container3d.classList.toggle("fullscreen3d", toggleFullscreen.checked);
 });
@@ -10,7 +15,15 @@ document.getElementById("rotYSlider").addEventListener("input", e => objState.ro
 document.getElementById("rotZSlider").addEventListener("input", e => objState.rotZ = parseFloat(e.target.value));
 document.getElementById("brightSlider").addEventListener("input", e => BRIGHTNESS = parseFloat(e.target.value));
 document.getElementById("camDistSlider").addEventListener("input", e => camState.pos[2] = parseFloat(e.target.value));
+document.getElementById("toggleMesh").addEventListener("change", e => {
+    mesh.togglePlane(e.target.checked);
+});
 
+let usePlane = false;
+const toggleMesh = document.getElementById("toggleMesh");
+toggleMesh.addEventListener("change", () => {
+
+});
 document.getElementById("saveBtn").addEventListener("click", () => {
     const config = {
         GRID_SIZE,

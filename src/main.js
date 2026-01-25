@@ -1,4 +1,6 @@
 const moveSpeed = 0.15;
+const FPS_LIMIT = 60;
+let lastFrameTime = 0;
 
 async function main() {
     const c3 = document.getElementById("canvas3d");
@@ -35,7 +37,14 @@ async function main() {
         toggleCamera.checked ? startCamera() : stopCamera();
     });
 
-    function loop() {
+    function loop(currentTime) {
+        const delta = currentTime - lastFrameTime;
+        if (delta < 1000 / FPS_LIMIT) {
+            requestAnimationFrame(loop);
+            return;
+        }
+        lastFrameTime = currentTime;
+
         c3.width = c3.clientWidth;
         c3.height = c3.clientHeight;
         c2.width = c2.clientWidth;
@@ -86,11 +95,11 @@ async function main() {
 
         fpsTick();
 
-        console.clear();
+        //console.clear();
         requestAnimationFrame(loop);
     }
 
-    loop();
+    requestAnimationFrame(loop);
 }
 
 if (document.readyState === 'loading') {

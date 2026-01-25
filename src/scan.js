@@ -5,6 +5,11 @@ class ScannerMesh {
         this.posBuffer = gl.createBuffer();
         this.colBuffer = gl.createBuffer();
         this.vertCount = 0;
+        this.usePlane = false;
+    }
+
+    togglePlane(enable) {
+        this.usePlane = enable;
     }
 
     _shader() {
@@ -26,14 +31,7 @@ class ScannerMesh {
                 gl_FragColor = vCol;
             }
         `;
-
-        const sh = (t, s) => {
-            let x = gl.createShader(t);
-            gl.shaderSource(x, s);
-            gl.compileShader(x);
-            return x;
-        }
-
+        const sh = (t, s) => { let x = gl.createShader(t); gl.shaderSource(x, s); gl.compileShader(x); return x; }
         let p = gl.createProgram();
         gl.attachShader(p, sh(gl.VERTEX_SHADER, vs));
         gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fs));
@@ -42,40 +40,37 @@ class ScannerMesh {
     }
 
     updateFromCamera(pixels, w, h) {
-        const size = (CUBE_SIZE / GRID_SIZE) * CUBE_SCALE;
         const pos = [];
         const col = [];
+        const size = (CUBE_SIZE / GRID_SIZE) * CUBE_SCALE;
 
-        for (let y = 0; y < GRID_SIZE; y++) {
-            for (let x = 0; x < GRID_SIZE; x++) {
-                const px = (x / GRID_SIZE * (w - 1)) | 0;
-                const py = ((1 - y / GRID_SIZE) * (h - 1)) | 0;
-                const i = (py * w + px) * 4;
+        if (this.usePlane) {
+            const plane = new Plane();
+            plane.pushToBuffers(pos, col, pixels, w, h);
+            this.vertCount = pos.length / 3;
+        } else {
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const px = (x / GRID_SIZE * (w - 1)) | 0;
+                    const py = ((1 - y / GRID_SIZE) * (h - 1)) | 0;
+                    const i = (py * w + px) * 4;
 
-                const r = (pixels[i] / 255) * BRIGHTNESS;
-                const g = (pixels[i + 1] / 255) * BRIGHTNESS;
-                const b = (pixels[i + 2] / 255) * BRIGHTNESS;
+                    const r = (pixels[i] / 255) * BRIGHTNESS;
+                    const g = (pixels[i + 1] / 255) * BRIGHTNESS;
+                    const b = (pixels[i + 2] / 255) * BRIGHTNESS;
+                    const z = (0.2126 * r + 0.7152 * g + 0.0722 * b) * objState.depth;
 
-                const z = (0.2126 * r + 0.7152 * g + 0.0722 * b) * objState.depth;
+                    const cx = x / GRID_SIZE * 4 - 2;
+                    const cy = y / GRID_SIZE * 4 - 2;
 
-                const cx = x / GRID_SIZE * 4 - 2;
-                const cy = y / GRID_SIZE * 4 - 2;
-
-                const voxel = new VoxelCube(
-                    cx,
-                    cy,
-                    z,
-                    size,
-                    [r, g, b, 1]
-                );
-
-                voxel.pushToBuffers(pos, col);
+                    const voxel = new VoxelCube(cx, cy, z, size, [r, g, b, 1]);
+                    voxel.pushToBuffers(pos, col);
+                }
             }
+            this.vertCount = pos.length / 3;
         }
 
-        this.vertCount = pos.length / 3;
         const gl = this.gl;
-
         gl.bindBuffer(gl.ARRAY_BUFFER, this.posBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pos), gl.DYNAMIC_DRAW);
 

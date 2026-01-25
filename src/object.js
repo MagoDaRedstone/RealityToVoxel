@@ -35,6 +35,65 @@ class VoxelCube {
     }
 }
 
+class Plane {
+    constructor() {}
+
+    pushToBuffers(pos, col, pixels, w, h) {
+        const step = 4 / (GRID_SIZE - 1);
+
+        const heights = [];
+
+        for (let y = 0; y < GRID_SIZE; y++) {
+            heights[y] = [];
+            for (let x = 0; x < GRID_SIZE; x++) {
+                const px = (x / GRID_SIZE * (w - 1)) | 0;
+                const py = ((1 - y / GRID_SIZE) * (h - 1)) | 0;
+                const i = (py * w + px) * 4;
+
+                const r = (pixels[i] / 255) * BRIGHTNESS;
+                const g = (pixels[i + 1] / 255) * BRIGHTNESS;
+                const b = (pixels[i + 2] / 255) * BRIGHTNESS;
+
+                const z = (0.2126 * r + 0.7152 * g + 0.0722 * b) * objState.depth;
+                heights[y][x] = { r, g, b, z };
+            }
+        }
+
+        for (let y = 0; y < GRID_SIZE - 1; y++) {
+            for (let x = 0; x < GRID_SIZE - 1; x++) {
+                const x0 = x * step - 2;
+                const y0 = y * step - 2;
+                const x1 = x0 + step;
+                const y1 = y0 + step;
+
+                const h00 = heights[y][x];
+                const h10 = heights[y][x + 1];
+                const h11 = heights[y + 1][x + 1];
+                const h01 = heights[y + 1][x];
+
+                pos.push(
+                    x0, y0, h00.z,
+                    x1, y0, h10.z,
+                    x1, y1, h11.z,
+
+                    x0, y0, h00.z,
+                    x1, y1, h11.z,
+                    x0, y1, h01.z
+                );
+
+                col.push(
+                    h00.r, h00.g, h00.b, 1,
+                    h10.r, h10.g, h10.b, 1,
+                    h11.r, h11.g, h11.b, 1,
+                    h00.r, h00.g, h00.b, 1,
+                    h11.r, h11.g, h11.b, 1,
+                    h01.r, h01.g, h01.b, 1
+                );
+            }
+        }
+    }
+}
+
 function matIdent() {
     return new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
 }
